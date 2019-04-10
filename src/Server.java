@@ -57,7 +57,6 @@ public class Server {
 		@Override
 		public void run() {
 			
-			System.out.println("Run of Server connection");
 
 			try {
 				input = new DataInputStream(socket.getInputStream());
@@ -69,10 +68,16 @@ public class Server {
 					while (input.available() == 0) {
 						Thread.sleep(5);
 					}
+					
+					if(!input.equals(null)) {
+						String inputText = input.readUTF();
+						
+						String id = input.readUTF();
+						handleClients(inputText, id);
+					} else {
+						System.out.println("Client is gone.");
+					}
 
-					String inputText = input.readUTF();
-					System.out.println("Reader requested something");
-					handleClients(inputText);
 				}
 
 			} catch (IOException e) {
@@ -83,19 +88,32 @@ public class Server {
 
 		}
 
-		private void handleClients(String input) {			
+		private void handleClients(String input, String id) {			
 			
-			try {	
+			if(input.substring(0, 4).equals("READ")) {
+				System.out.println("Reader requested something");
 				
-				output.writeUTF(board.searchItem(input, this));
-				output.flush();
+				try {	
+
+					output.writeUTF(board.readItem(input));
+					output.flush();
+					
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			} else if (input.substring(0, 5).equals("WRITE")) {
+				System.out.println("Writer requested something");
+				
+			
+
+				System.out.println("Not done yet.");
+				
+			}		
+			
 			
 		}
-
+		
 	}
 
 }

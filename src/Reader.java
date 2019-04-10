@@ -1,27 +1,17 @@
-
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class Reader{
-	
-	public static final int NUM_OF_READERS = 3;
-
-	private ArrayList<Thread> connections = new ArrayList<>();
-	private String id;
-	
+public class Reader extends Client{
+		
+	private ArrayList<Thread> connections = new ArrayList<>();	
 	
 	public static void main(String[] args) {
-		
-		new Reader("R");
-		
+		new Reader();	
 	}
 
-	public Reader(String id) {
-		this.id = id;
+	public Reader() {
+
 		Socket socket;
 
 		try {
@@ -39,70 +29,40 @@ public class Reader{
 
 	}
 
-
-	private class Connection implements Runnable {
-
-
-		// Stream for giving and getting information
-		DataInputStream input;
-		DataOutputStream output;
+	private class Connection extends Client.Connection {
 
 		public Connection(Socket socket) {
-			
-			try {
-				
-				input = new DataInputStream(socket.getInputStream());
-				output = new DataOutputStream(socket.getOutputStream());
-
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			super(socket);
 		}
 
 		@Override
 		public void run() {
 			
-			System.out.println("Run of Client");
-
 			while (true) {
-
-				//String inputText = input.readUTF();
 				requestRead();
-				read();
-
+				answerFromServer();
 			}
 
 		}
 
-		private void requestRead() {
-			Scanner sc = new Scanner(System.in);
-
-			System.out.println("What do you want?");
-			String request = sc.nextLine();
-
-			try {
-				output.writeUTF(request);
-				output.flush();
+		private void requestRead() {	
+			
+			//Pick something from the enum (valid airport codes)
+		    int pick = random.nextInt(AirportCodes.values().length);
+		    
+		    try {
+				output.writeUTF("READ " + AirportCodes.values()[pick].toString());
+				output.writeUTF(this.toString());
+				
+				
 				System.out.println("Request is sent.");
-			} catch (IOException e) {
-				e.printStackTrace();
+			} catch (IOException e1) {
+				e1.printStackTrace();
 			}
-
+			
 		}
 		
-		private void read() {
-			try {
-				String line = input.readUTF();
-				
-				System.out.println(line);
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 
 	}
-
-
 
 }
