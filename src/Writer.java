@@ -1,12 +1,17 @@
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Random;
 
 public class Writer extends Client {
 
 	private ArrayList<Thread> connections = new ArrayList<>();
+	
+	public static void main(String[] args) {
+		new Writer();	
+	}
 
-	public Writer(String id) {
+	public Writer() {
 
 		Socket socket;
 
@@ -20,7 +25,8 @@ public class Writer extends Client {
 			thread.start();
 
 		} catch (IOException e) {
-			e.printStackTrace();
+			System.out.println("IOException occured.");
+			System.exit(0);
 		}
 
 	}
@@ -35,14 +41,22 @@ public class Writer extends Client {
 		public void run() {
 
 			while (true) {
-
-				requestWriting();
+				
+				//Delete or write
+				if(new Random().nextInt(2) == 1) {
+					System.out.println("Delete is called.");
+					requestDelete();
+				} else {
+					System.out.println("Write is called.");
+					requestWrite();
+				}
+				
 				answerFromServer();
 			}
 
 		}
 		
-		private void requestWriting() {
+		private void requestWrite() {
 			
 			int pick;
 			String code, stage, date;
@@ -66,7 +80,9 @@ public class Writer extends Client {
 		    
 		    try {
 				output.writeUTF("WRITE" + code + " " + stage + " " + date);
-				output.writeUTF(this.toString());
+				output.flush();
+				
+				//output.writeUTF(this.toString());
 				
 				System.out.println("Request is sent.");
 			} catch (IOException e1) {
@@ -74,7 +90,24 @@ public class Writer extends Client {
 			}
 
 			
-		}		
+		}
+		
+		private void requestDelete() {
+			
+			//Pick something from the enum (valid airport codes)
+		    int pick = random.nextInt(AirportCodes.values().length);
+		    
+		    try {
+		    	
+				output.writeUTF("DELETE " + AirportCodes.values()[pick].toString());
+				output.flush();				
+				
+				System.out.println("Request is sent.");
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+			
+		}
 		
 	}
 

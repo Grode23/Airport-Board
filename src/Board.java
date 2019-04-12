@@ -22,13 +22,16 @@ public class Board {
 
 	public Board() {
 		// Add items to Board - Testing purpose only
-		addItem("AMS", "aaa", "4:20");
-		addItem("ATH", "bbb", "21:00");
-		addItem("SKG", "ccc", "23:10");
-	}
+		writeItem("AMS", "depacture", "4:20");
+		writeItem("ATH", "departure", "21:00");
+		writeItem("SKG", "arrival", "23:10");
+		writeItem("DEL", "arrival", "23:50");
+		writeItem("PVG", "departure", "13:15");
+		
+	}	
 
-	public String addItem(String code, String stage, String date) {
-
+	public String writeItem(String code, String stage, String date) {
+		
 		// Check if it already exists
 		for (int i = 0; i < codes.size(); i++) {
 			if (codes.get(i).equals(code)) {
@@ -36,16 +39,21 @@ public class Board {
 			}
 		}
 
-		ReentrantLock lock = new ReentrantLock();
+		try {
+			semaphore.acquire();
+			
+			Thread.sleep(5000);
 
-		lock.lock();
-
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
 		codes.add(code);
 		stages.add(stage);
 		dates.add(date);
 
-		lock.unlock();
-
+		semaphore.release();
+		
 		return "WOK";
 	}
 
@@ -63,7 +71,7 @@ public class Board {
 				return i;
 			}
 		}
-		return 0;
+		return -1;
 
 	}
 	
@@ -80,39 +88,47 @@ public class Board {
 		
 		int index;
 		
-		if((index = searchItem(code)) != 0) {
+		if((index = searchItem(code)) != -1) {
 			//readsNow.decrementAndGet();
 			//If someone is deleting, do this again, because the chosen item might be deleted
-			if(semaphoreDel.availablePermits() == 0) {
-				System.out.println("Reading again");
-				readItem(code);
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
 			return "ROK " + code + " " + stages.get(index) + " " + dates.get(index);
 		}
+		
 		readsNow.decrementAndGet();
 		return "RERR";
 		
 	}
 	
-	public void deleteItem() {
+	public String deleteItem(String code) {
 		try {
-			//While there are some reads happening, don't delete anything
-			//while(readsNow.get() != 0) {}
+			
 			semaphore.acquire();
 			
+			//parameter code is "DELETE <CODE>", so I keep only the part I need
+			code = code.substring(7, code.length());
+			int index;
 			
-			
-			
-			
+			if((index = searchItem(code)) != -1) {
+				codes.remove(index);
+				stages.remove(index);
+				dates.remove(index);
+				
+				semaphore.release();
+				return "DOK";
+			}
+	
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} finally {
-			semaphore.release();
-		}
+		} 			
 		
-		
-		
-		
+		semaphore.release();
+		return "DERR";
+
 	}
 
 }

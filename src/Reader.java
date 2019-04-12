@@ -2,7 +2,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 
-public class Reader extends Client{
+public class Reader extends Client {
 		
 	private ArrayList<Thread> connections = new ArrayList<>();	
 	
@@ -52,7 +52,8 @@ public class Reader extends Client{
 		    
 		    try {
 				output.writeUTF("READ " + AirportCodes.values()[pick].toString());
-				output.writeUTF(this.toString());
+				output.flush();
+				//output.writeUTF(this.toString());
 				
 				
 				System.out.println("Request is sent.");
