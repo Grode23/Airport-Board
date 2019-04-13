@@ -93,7 +93,6 @@ public class Server {
 		private void handleClients(String input) {			
 			
 			if(input.substring(0, 4).equals("READ")) {
-				System.out.println("Reader requested to read");
 				
 				try {
 
@@ -105,12 +104,11 @@ public class Server {
 				}
 				
 			} else if (input.substring(0, 5).equals("WRITE")) {
-				System.out.println("Writer requested to write");
 				
 				//Information[0] -> code
 				//Information[1] -> stage
 				//Information[2] -> date
-				String[] information = new String[3];		
+				String[] information = new String[3];
 				information = readInformation(input);
 				
 				try {
@@ -123,10 +121,9 @@ public class Server {
 
 				
 			} else if(input.substring(0, 6).equals("DELETE")) {
-				System.out.println("Writer requested a deletion");
 
 				try {
-					output.writeUTF(board.readItem(input));
+					output.writeUTF(board.deleteItem(input));
 					output.flush();
 
 				} catch (IOException e) {

@@ -1,19 +1,13 @@
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class Board {
 	
 	/**
-	 * ReadsNow is the current reads that are happening.
-	 * Without it, it would be possible to read a value that has been deleted some milliseconds ago.
-	 * 
-	 * SemaphoreDel 
+	 * Reader can read only when 
 	 */
-	private Semaphore semaphoreDel = new Semaphore(1); 
 	private Semaphore semaphore = new Semaphore(1);
-	private AtomicInteger readsNow = new AtomicInteger(0);
+	private Semaphore semaphoreDelete = new Semaphore(1);
 
 	private ArrayList<String> codes = new ArrayList<>();
 	private ArrayList<String> stages = new ArrayList<>();
@@ -21,41 +15,30 @@ public class Board {
 	
 
 	public Board() {
+		
 		// Add items to Board - Testing purpose only
-		writeItem("AMS", "depacture", "4:20");
-		writeItem("ATH", "departure", "21:00");
-		writeItem("SKG", "arrival", "23:10");
-		writeItem("DEL", "arrival", "23:50");
-		writeItem("PVG", "departure", "13:15");
+		codes.add("AMS");
+		stages.add("depacture");
+		dates.add("4:20");
+		
+		codes.add("ATH");
+		stages.add("depacture");
+		dates.add("2:10");
+
+		codes.add("SKG");
+		stages.add("arrival");
+		dates.add("23:10");
+
+		codes.add("DEL");
+		stages.add("arrival");
+		dates.add("5:07");
+
+		codes.add("PVG");
+		stages.add("depacture");
+		dates.add("18:56");
 		
 	}	
 
-	public String writeItem(String code, String stage, String date) {
-		
-		// Check if it already exists
-		for (int i = 0; i < codes.size(); i++) {
-			if (codes.get(i).equals(code)) {
-				return "WERR";
-			}
-		}
-
-		try {
-			semaphore.acquire();
-			
-			Thread.sleep(5000);
-
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
-		
-		codes.add(code);
-		stages.add(stage);
-		dates.add(date);
-
-		semaphore.release();
-		
-		return "WOK";
-	}
 
 	public int searchItem(String code) {
 		
@@ -77,57 +60,106 @@ public class Board {
 	
 	public String readItem(String code) {
 		
-		//A read is happening
-		//readsNow.incrementAndGet();		
+		System.out.println("Reader requested to read");
+		
+		while(semaphoreDelete.availablePermits() == 0) {}
+		System.out.println("Reading starts");
 		
 		//parameter code is "READ <CODE>", so I keep only the part I need
-		code = code.substring(5, code.length());
-		
-		//While someone is deleting, wait
-		while(semaphoreDel.availablePermits() == 0) {}
-		
+		String newCode = code.substring(5, code.length());
+
 		int index;
 		
-		if((index = searchItem(code)) != -1) {
-			//readsNow.decrementAndGet();
-			//If someone is deleting, do this again, because the chosen item might be deleted
+		if((index = searchItem(newCode)) != -1) {
+			
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			return "ROK " + code + " " + stages.get(index) + " " + dates.get(index);
+			
+			//If someone is deleting, do this again, because the chosen item might be deleted
+			if(semaphoreDelete.availablePermits() == 0) {
+				System.out.println("Reading again");
+				return readItem(code);
+			}
+			
+			System.out.println("Reading is done.");
+			return "ROK " + newCode + " " + stages.get(index) + " " + dates.get(index);
 		}
 		
-		readsNow.decrementAndGet();
+		System.out.println("READING FAILED");
 		return "RERR";
 		
 	}
 	
-	public String deleteItem(String code) {
-		try {
-			
-			semaphore.acquire();
-			
-			//parameter code is "DELETE <CODE>", so I keep only the part I need
-			code = code.substring(7, code.length());
-			int index;
-			
-			if((index = searchItem(code)) != -1) {
-				codes.remove(index);
-				stages.remove(index);
-				dates.remove(index);
-				
-				semaphore.release();
-				return "DOK";
+	public String writeItem(String code, String stage, String date) {	
+		
+		// Check if it already exists
+		for (int i = 0; i < codes.size(); i++) {
+			if (codes.get(i).equals(code)) {
+				System.out.println("WRITING FAILED");
+				return "WERR";
 			}
+		}
+
+		try {
+			semaphore.acquire();
+			System.out.println("Writing");
+			
+			Thread.sleep(5000);
+
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
+		
+		codes.add(code);
+		stages.add(stage);
+		dates.add(date);
+		
+		System.out.println("Writing is done.");
+		semaphore.release();
+
+		return "WOK";
+	}
+	
+	public String deleteItem(String code) {
+		
+		int index;
+		
+		//Parameter code is "DELETE <CODE>", so I keep only the part I need
+		code = code.substring(7, code.length());
+		
+		if((index = searchItem(code)) == -1) {	
+			System.out.println("DELETE FAILED");
+			return "DERR";		
+		}
+		
+		try {
+			//Stops writing
+			semaphore.acquire();
+			//Stops even the readings (with the while loop into readItem)
+			semaphoreDelete.acquire();
+			
+			System.out.println("Deleting");
+			
+			Thread.sleep(5000);
+			
+			codes.remove(index);
+			stages.remove(index);
+			dates.remove(index);
+				
+			System.out.println("Deletion is done.");
+			semaphoreDelete.release();
+			semaphore.release();
+			return "DOK";
+			
 	
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} 			
+		} 
 		
-		semaphore.release();
-		return "DERR";
+		return null;
 
 	}
 

@@ -11,7 +11,7 @@ public abstract class Client {
 	protected class Connection implements Runnable {
 
 		// Stream for giving and getting information
-		protected DataInputStream input;
+		private DataInputStream input;
 		protected DataOutputStream output;
 
 		public Connection(Socket socket) {

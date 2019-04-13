@@ -25,8 +25,7 @@ public class Writer extends Client {
 			thread.start();
 
 		} catch (IOException e) {
-			System.out.println("IOException occured.");
-			System.exit(0);
+			e.printStackTrace();
 		}
 
 	}
@@ -39,11 +38,21 @@ public class Writer extends Client {
 
 		@Override
 		public void run() {
+			
+			Random random = new Random();
 
 			while (true) {
 				
+				try {
+					//Sleep for some time
+					//I don't want to write or delete something all the time
+					Thread.sleep(random.nextInt(2500) + 1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				
 				//Delete or write
-				if(new Random().nextInt(2) == 1) {
+				if(random.nextInt(2) == 1) {
 					System.out.println("Delete is called.");
 					requestDelete();
 				} else {
