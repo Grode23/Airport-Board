@@ -20,6 +20,7 @@ public class Server {
 	}
 	
 	public Server() {
+		System.out.println("Server is running");
 		
 		try {
 
@@ -129,6 +130,23 @@ public class Server {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			} else if(input.substring(0, 4).equals("EDIT")){
+			
+				//Information[0] -> code
+				//Information[1] -> stage
+				//Information[2] -> date
+				String[] information = new String[3];
+				information = readInformation(input);
+				
+				try {
+					output.writeUTF(board.editItem(information[0], information[1], information[2]));
+					output.flush();
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+
 			}
 			
 		}

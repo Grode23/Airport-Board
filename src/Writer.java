@@ -51,13 +51,20 @@ public class Writer extends Client {
 					e.printStackTrace();
 				}
 				
+				int randomNum = random.nextInt(3);
+				//Pick a random number so I can get a valid airport code
+			    int pick = random.nextInt(AirportCodes.values().length);
+				
 				//Delete or write
-				if(random.nextInt(2) == 1) {
+				if(randomNum == 1) {
 					System.out.println("Delete is called.");
-					requestDelete();
-				} else {
+					requestDelete(pick);
+				} else if(randomNum == 2){
 					System.out.println("Write is called.");
-					requestWrite();
+					requestWrite(pick);
+				} else {
+					System.out.println("Edit is called.");
+					requestEdit(pick);
 				}
 				
 				answerFromServer();
@@ -65,47 +72,23 @@ public class Writer extends Client {
 
 		}
 		
-		private void requestWrite() {
+		private void requestWrite(int pick) {
 			
-			int pick;
-			String code, stage, date;
+			String[] information = randomValuesForBoard(pick);
 			
-			//Get a random airport code
-		    pick = random.nextInt(AirportCodes.values().length);
-		    code = AirportCodes.values()[pick].toString();
-		    
-		    //Get a random stage
-		    pick = random.nextInt(2);
-		    if(pick == 1)
-		    	stage = "arrival";
-		    else
-		    	stage = "departure";
-		    
-		    //Get a random time of the day
-		    pick = random.nextInt(24);
-		    date = String.valueOf(pick) + ":";
-		    pick = random.nextInt(60);
-		    date += String.valueOf(pick);
-		    
 		    try {
-				output.writeUTF("WRITE" + code + " " + stage + " " + date);
+				output.writeUTF("WRITE" + information[0] + " " + information[1] + " " + information[2]);
 				output.flush();
-				
-				//output.writeUTF(this.toString());
 				
 				System.out.println("Request is sent.");
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-
 			
 		}
 		
-		private void requestDelete() {
-			
-			//Pick something from the enum (valid airport codes)
-		    int pick = random.nextInt(AirportCodes.values().length);
-		    
+		private void requestDelete(int pick) {
+					    
 		    try {
 		    	
 				output.writeUTF("DELETE " + AirportCodes.values()[pick].toString());
@@ -117,7 +100,44 @@ public class Writer extends Client {
 			}
 			
 		}
+
+		private void requestEdit(int pick) {
+
+			String[] information = randomValuesForBoard(pick);
+			
+			try {
+				output.writeUTF("EDIT" + information[0] + " " + information[1] + " " + information[2]);
+				output.flush();
+								
+				System.out.println("Request is sent.");
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+		}
 		
+		private String[] randomValuesForBoard(int pick) {
+			
+			String[] information = new String[3];
+			
+			//Get a random airport code
+		    information[0] = AirportCodes.values()[pick].toString();
+		    
+		    //Get a random stage
+		    pick = random.nextInt(2);
+		    if(pick == 1)
+		    	information[1] = "arrival";
+		    else
+		    	information[1] = "departure";
+		    
+		    //Get a random time of the day
+		    pick = random.nextInt(24);
+		    information[2] = String.valueOf(pick) + ":";
+		    pick = random.nextInt(60);
+		    information[2] += String.valueOf(pick);
+	
+			return information;
+	
+		}
 	}
 
 }
