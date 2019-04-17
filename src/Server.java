@@ -7,8 +7,17 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Server is responsible for every connection between itself and the clients
+ * Server handles the clients (all kinds). Gets the input and transform it as it needs
+ * Every clients' output gets passed to board through here
+ * Whenever board stuff is done, the input goes here and finally gets send back to the client
+ * 
+ * P.S. There is a lot of prints to show the current state of the process
+ */
 public class Server {
 
+	//The one and only port
 	public static final int PORT = 1234;
 
 	private ServerSocket ss;
@@ -28,9 +37,11 @@ public class Server {
 
 			while (true) {
 
-				// Once per connection
+				// Once per connection/client
 				Socket socket = ss.accept();
 				System.out.println("Client connected.");
+				
+				//Create and start a new connection with a client
 				Connection conn = new Connection(socket);
 				Thread thread = new Thread(conn);
 				connections.add(thread);
@@ -72,11 +83,12 @@ public class Server {
 						Thread.sleep(5);
 					}
 					
+					//If there is an input, go on
 					if(!input.equals(null)) {
 						
-						String inputText = input.readUTF();					
-						
+						String inputText = input.readUTF();						
 						handleClients(inputText);
+					
 					} else {
 						System.out.println("Client is gone.");
 					}
@@ -91,6 +103,12 @@ public class Server {
 
 		}
 
+		/**
+		 * Input is being read and gets sent wherever it has to
+		 * With other words, server reads the first word of the message, 
+		 * so it can understand what kind of request it is
+		 * Finally, server calls the appropriate board method 
+		 */
 		private void handleClients(String input) {			
 			
 			if(input.substring(0, 4).equals("READ")) {
@@ -151,8 +169,11 @@ public class Server {
 			
 		}
 		
+		//Whenever the input is complicated (writes and edits) this method is called
+		//Arguments get stored and returned via string array
 		private String[] readInformation(String input) {
 			
+			//array that will store the information I need
 			String[] result = new String[3];
 			
 			Pattern pattern = Pattern.compile("(WRITE|EDIT)\\s*([A-Z]{3})\\s*(arrival|departure)\\s*(\\d{1,2}:\\d{1,2})");

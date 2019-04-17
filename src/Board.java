@@ -1,14 +1,19 @@
 import java.util.ArrayList;
 import java.util.concurrent.Semaphore;
-
+/**
+ * Board is responsible for the information gathering
+ * It's being called by many threads, so it has to deal with multithreading issues
+ * Board can be called ONLY by server
+ * 
+ * There are some primary methods (readItem, deleteItem, writeItem, editItem) 
+ * and some secondary just for keeping my code simple and clean  
+ */
 public class Board {
 
 	/**
 	 * semaphoreExtra exists just because the readers shouldn't read when
 	 * a delete or an edit is being applied
 	 * Other than that, it's just an extra semaphore with no other capacity
-	 * 
-	 * semaphore is the main lock of the program
 	 */
 	private Semaphore semaphore = new Semaphore(1);
 	private Semaphore semaphoreExtra = new Semaphore(1);
@@ -75,6 +80,7 @@ public class Board {
 
 		int index;
 
+		//If this code exists, read about it
 		if ((index = searchItem(newCode)) != -1) {
 
 			try {
@@ -98,6 +104,7 @@ public class Board {
 		return "RERR";
 
 	}
+	
 //WRITE
 	public String writeItem(String code, String stage, String date) {
 
@@ -118,18 +125,22 @@ public class Board {
 
 		} catch (InterruptedException e1) {
 			e1.printStackTrace();
+		} finally {
+			
+			//Write the new item
+			codes.add(code);
+			stages.add(stage);
+			dates.add(date);
+
+			System.out.println("Writing is done.");
+			semaphore.release();
+
 		}
 
-		//Write the new item
-		codes.add(code);
-		stages.add(stage);
-		dates.add(date);
-
-		System.out.println("Writing is done.");
-		semaphore.release();
-
 		return "WOK";
+		
 	}
+	
 //DELETE
 	public String deleteItem(String code) {
 
@@ -214,6 +225,7 @@ public class Board {
 			e.printStackTrace();
 		}
 
+		//It's not going to happen
 		return null;
 
 	}
