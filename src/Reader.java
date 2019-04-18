@@ -1,31 +1,24 @@
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 
 public class Reader extends Client {
-		
-	private ArrayList<Thread> connections = new ArrayList<>();	
-	
+
 	public static void main(String[] args) {
-		new Reader();	
+		new Reader();
 	}
 
+	/**
+	 * Same as the rest of the threads Keep every instance of this inner class in an
+	 * Arraylist And start the threads
+	 */
 	public Reader() {
+		super();
 
-		Socket socket;
-
-		try {
-
-			socket = new Socket("localhost", Server.PORT);		
-			
-			Connection conn = new Connection(socket);
-			Thread thread = new Thread(conn);
-			connections.add(thread);
-			thread.start();
-			
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		// Add the connection to an Arraylist
+		Connection conn = new Connection(socket);
+		Thread thread = new Thread(conn);
+		connections.add(thread);
+		thread.start();
 
 	}
 
@@ -37,32 +30,39 @@ public class Reader extends Client {
 
 		@Override
 		public void run() {
-			
+
+			// Do this forever
+			// Request and get an answer
 			while (true) {
+
+				try {
+					Thread.sleep(random.nextInt(400));
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+
 				requestRead();
 				answerFromServer();
 			}
 
 		}
 
-		private void requestRead() {	
-			
-			//Pick something from the enum (valid airport codes)
-		    int pick = random.nextInt(AirportCodes.values().length);
-		    
-		    try {
+		private void requestRead() {
+
+			// Pick something from the enum (valid airport codes)
+			int pick = random.nextInt(AirportCodes.values().length);
+
+			try {
+				// Send request to server
 				output.writeUTF("READ " + AirportCodes.values()[pick].toString());
 				output.flush();
-				//output.writeUTF(this.toString());
-				
-				
+
 				System.out.println("Request is sent.");
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}
-			
+
 		}
-		
 
 	}
 
