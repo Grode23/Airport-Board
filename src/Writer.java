@@ -1,6 +1,11 @@
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * One of the sub-classes of client
+ * This kind of client's job associates with changes to the board(as an employee)
+ * It has some sleep time to make it looks closer to reality 
+ */
 public class Writer extends Client {
 	
 	public static void main(String[] args) {

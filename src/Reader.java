@@ -1,6 +1,11 @@
 import java.io.IOException;
 import java.net.Socket;
 
+/**
+ * One of the sub-classes of client
+ * This kind of client's job is reading from the board (as a normal citizen)
+ * It has some sleep time to make it looks closer to reality 
+ */
 public class Reader extends Client {
 
 	public static void main(String[] args) {
